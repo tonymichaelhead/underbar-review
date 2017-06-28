@@ -1,3 +1,5 @@
+var string = 'hello!'
+
 (function() {
   'use strict';
 
@@ -339,15 +341,17 @@
   _.memoize = function(func) {
     var prevCalled = [];
     return function(){  
-      var firstArgument = arguments[0].toString();
+      var firstArgument = JSON.stringify(arguments);
       if (getObjWithProp(prevCalled, firstArgument) !== undefined ) {
-        return getObjWithProp(prevCalled, firstArgument)[firstArgument];
-      } else {
-        var result = func.call(this, arguments[0]);
-        prevCalled.push({firstArgument:result});
-        return result;
-      }
-    };
+      return getObjWithProp(prevCalled, firstArgument)[firstArgument];
+    } else {
+      var result = func.apply(this, arguments);
+      var resultObj = {};
+      resultObj[firstArgument] = result;
+      prevCalled.push(resultObj);
+      return result;
+    }
+   }
   };
   
   
@@ -358,7 +362,13 @@
   // The arguments for the original function are passed after the wait
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
-  _.delay = function(func, wait) {
+
+
+   _.delay = function(func, wait) {
+    var argumentsArray = Array.prototype.slice.call(arguments);
+    argumentsArray = argumentsArray.slice(2);
+    var noInvoke = function(){func.apply(this, argumentsArray);};
+    setTimeout(noInvoke, wait);
   };
 
 
